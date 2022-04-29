@@ -9,6 +9,7 @@ uniform vec2 u_mouse;
 uniform float u_time;
 out vec4 fragColor;
 int arrLength = 64;
+int gsLength = 3;
 
 float sp[3];
 vec3 sc[3];
@@ -33,9 +34,9 @@ vec3 shape (vec2 st, vec2[64] vertices) {
     sp[0] = 0.2;
     sp[1] = 0.5;
     sp[2] = 0.8;
-    sc[0] = vec3(0.7412, 0.7294, 0.1176);
-    sc[1] = vec3(0.902, 0.0392, 0.0392);
-    sc[2] = vec3(0.0667, 0.0, 1.0);
+    sc[0] = vec3(0.7412, 0.1176, 0.3451);
+    sc[1] = vec3(0.902, 0.8588, 0.0392);
+    sc[2] = vec3(1.0, 0.0, 0.0);
     for (int i=0; i<arrLength; i++) {
         int cdx = i;
         int ndx = i + 1;
@@ -46,14 +47,20 @@ vec3 shape (vec2 st, vec2[64] vertices) {
         float maxDist = perpDistance(vec2(0., 0.), cpt, npt);
 
         if (pointInTriangle(st, cpt, npt)) {
-            float ratio = perpDistance(st, cpt, npt) / maxDist;
-            for (int j=0; j<3; j++) {
-                int csdx = j;
-                int cndx = j + 1;
-                if (j == 2) cndx = csdx;
-
-                if (sp[csdx] <= ratio && sp[cndx] >= ratio) {
-                    return mix(sc[cndx], sc[csdx], (sp[cndx] - ratio) / (sp[cndx] - sp[csdx]));
+            float ratio = (maxDist - perpDistance(st, cpt, npt)) / maxDist;
+            float fp = sp[0];
+            float ep = sp[gsLength - 1];
+            vec3 fc = sc[0];
+            vec3 ec = sc[gsLength - 1];
+            if (ratio < fp) {
+                return fc;
+            } else if (ratio > ep) {
+                return ec;
+            } else {
+                for (int j=0; j<gsLength-1; j++) {
+                    if (sp[j] <= ratio && sp[j+1] >= ratio) {
+                        return mix(sc[j], sc[j+1], (ratio - sp[j]) / (sp[j+1] - sp[j]));
+                    }
                 }
             }
         }
